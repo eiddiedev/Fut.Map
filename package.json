@@ -1,0 +1,41 @@
+{
+  "name": "livegoal-map",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "NEXT_DIST_DIR=.next-dev next dev",
+    "build": "next build",
+    "build:verify": "NEXT_DIST_DIR=.next-verify next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "node --test --experimental-transform-types"
+  },
+  "dependencies": {
+    "@deck.gl/layers": "^9.1.12",
+    "@deck.gl/react": "^9.1.12",
+    "@vercel/blob": "^2.3.3",
+    "deck.gl": "^9.1.12",
+    "framer-motion": "^12.6.3",
+    "mapbox-gl": "^3.11.1",
+    "next": "^14.2.25",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-map-gl": "^7.1.9",
+    "three": "^0.183.2",
+    "topojson-client": "^3.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.14",
+    "@types/react": "^18.3.10",
+    "@types/react-dom": "^18.3.0",
+    "@types/three": "^0.183.1",
+    "@types/topojson-client": "^3.1.5",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.25",
+    "playwright": "^1.58.2",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.2"
+  }
+}

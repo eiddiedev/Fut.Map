@@ -1,0 +1,11 @@
+.next
+.next-dev
+.next-verify
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.DS_Store
+.env.local
+data/cache/
