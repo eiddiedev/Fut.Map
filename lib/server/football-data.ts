@@ -1293,7 +1293,19 @@ function mergeCuratedTeams(teams: FootballTeam[], curatedTeams: FootballTeam[]) 
                 leagueId: null,
                 leagueName: null
               }
-          : { ...existing, ...curatedTeam }
+          : {
+              ...existing,
+              ...curatedTeam,
+              logo:
+                existing.logo && existing.logo !== "/teams/national-generic.svg"
+                  ? existing.logo
+                  : curatedTeam.logo,
+              providerTeamId: existing.providerTeamId ?? curatedTeam.providerTeamId ?? null,
+              countryCode: existing.countryCode ?? curatedTeam.countryCode ?? null,
+              countryFlagUrl: existing.countryFlagUrl ?? curatedTeam.countryFlagUrl ?? null,
+              leagueId: existing.leagueId ?? curatedTeam.leagueId ?? null,
+              leagueName: existing.leagueName ?? curatedTeam.leagueName ?? null
+            }
         : curatedTeam
     );
   });
