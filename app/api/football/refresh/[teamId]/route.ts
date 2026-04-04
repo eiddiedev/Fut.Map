@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { refreshTeamInSnapshot } from "@/lib/server/football-data";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type RouteContext = {
   params: {
     teamId: string;

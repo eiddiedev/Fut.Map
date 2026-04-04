@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import type { LeagueCatalogEntry } from "@/lib/football/types";
 import { importLeagueCatalogIntoSnapshot } from "@/lib/server/football-data";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type ImportRequestBody = {
   leagues?: LeagueCatalogEntry[];
 };

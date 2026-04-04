@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { bootstrapFootballSnapshot } from "@/lib/server/football-data";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function POST(request: NextRequest) {
   const modeParam = request.nextUrl.searchParams.get("mode");
   const mode =
