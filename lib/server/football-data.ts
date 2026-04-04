@@ -11,7 +11,7 @@ import {
   PRIORITY_BOOTSTRAP_CATALOG,
   SECONDARY_LEAGUE_COUNTRIES
 } from "@/lib/football/config";
-import { getFlagUrlForCountryCode, getNationalFlagUrl } from "@/lib/football/flags";
+import { NATIONAL_COUNTRY_CODE_OVERRIDES, getFlagUrlForCountryCode, getNationalFlagUrl } from "@/lib/football/flags";
 import { createFallbackFootballSnapshot } from "@/lib/football/fallback";
 import { getFootballWorldCapitals } from "@/lib/football/national-geography";
 import type {
@@ -1943,7 +1943,15 @@ export async function ensureFootballSnapshot() {
       return !importedLeagueTierKeys.has(`${normalizeName(team.country)}|1`);
     })
   );
-  const nationalTeams = mergeCuratedTeams(snapshot.nationalTeams, NATIONAL_TEAMS);
+  const nationalTeams = mergeCuratedTeams(snapshot.nationalTeams, NATIONAL_TEAMS).map((team) =>
+    team.isNationalTeam
+      ? {
+          ...team,
+          countryCode: team.countryCode ?? NATIONAL_COUNTRY_CODE_OVERRIDES[team.country] ?? null,
+          countryFlagUrl: team.countryFlagUrl ?? getNationalFlagUrl(team.country)
+        }
+      : team
+  );
 
   const clubDetails = seedDetailCache(clubs, snapshot.clubDetails);
   const nationalTeamDetails = seedDetailCache(nationalTeams, snapshot.nationalTeamDetails);
