@@ -74,7 +74,7 @@ const GEOCODE_CITY_OVERRIDES: Record<string, string> = {
 };
 const API_FOOTBALL_REQUEST_LIMIT = 10;
 const API_FOOTBALL_RATE_WINDOW_MS = 60_000;
-const FREE_PLAN_LATEST_SEASON = 2024;
+const DEFAULT_API_FOOTBALL_SEASON = 2024;
 const apiFootballRequestTimestamps: number[] = [];
 
 const LIVE_STATUS = new Set(["1H", "2H", "HT", "ET", "BT", "P", "INT", "LIVE"]);
@@ -261,6 +261,13 @@ function getApiFootballKey() {
 
 function getMapboxToken() {
   return process.env.MAPBOX_ACCESS_TOKEN ?? process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
+}
+
+function getConfiguredFootballSeason() {
+  const raw = process.env.API_FOOTBALL_LATEST_SEASON?.trim();
+  const parsed = raw ? Number.parseInt(raw, 10) : Number.NaN;
+
+  return Number.isFinite(parsed) && parsed >= 2000 ? parsed : DEFAULT_API_FOOTBALL_SEASON;
 }
 
 function shouldUseBlobStorage() {
@@ -1211,22 +1218,26 @@ function chooseLeagueCatalogFromApi(leagues: ApiFootballLeagueResponse[]) {
 }
 
 async function resolveLeagueCatalog(mode: BootstrapMode) {
+  const season = getConfiguredFootballSeason();
+
   if (mode === "bundesliga") {
     return BUNDESLIGA_BOOTSTRAP_CATALOG.map((entry) => ({
-      ...entry
+      ...entry,
+      season
     }));
   }
 
   if (mode === "priority") {
     return PRIORITY_BOOTSTRAP_CATALOG.map((entry) => ({
-      ...entry
+      ...entry,
+      season
     }));
   }
 
   if (mode === "curated") {
     return FALLBACK_LEAGUE_CATALOG.map((entry) => ({
       ...entry,
-      season: entry.season ?? new Date().getUTCFullYear()
+      season: entry.season ?? season
     }));
   }
 
@@ -1510,7 +1521,7 @@ async function buildClubsFromLeagues(
   for (const leagueEntry of leagueCatalog) {
     let resolvedLeagueId = leagueEntry.leagueId ?? null;
     let resolvedLeagueName = leagueEntry.leagueName;
-    const season = leagueEntry.season ?? new Date().getUTCFullYear();
+    const season = leagueEntry.season ?? getConfiguredFootballSeason();
 
     if (!resolvedLeagueId) {
       const candidates = await apiFootballGet<ApiFootballLeagueResponse>("leagues", {
@@ -1712,6 +1723,7 @@ async function fetchDetailFromApi(team: FootballTeam, existingDetail?: FootballS
   detailPatch: FootballSidebarDetail;
   message: string;
 }> {
+  const season = getConfiguredFootballSeason();
   const resolved = await resolveProviderTeam(team);
   const providerTeamId = resolved.providerTeamId;
   const referenceDetail = getReferenceDetail(team, existingDetail);
@@ -1719,7 +1731,7 @@ async function fetchDetailFromApi(team: FootballTeam, existingDetail?: FootballS
   const [seasonFixtures, coaches] = await Promise.all([
     apiFootballGet<ApiFootballFixtureResponse>("fixtures", {
       team: providerTeamId,
-      season: FREE_PLAN_LATEST_SEASON
+      season
     }),
     shouldSyncStatic
       ? apiFootballGet<ApiFootballCoachResponse>("coachs", { team: providerTeamId })
@@ -1790,8 +1802,8 @@ async function fetchDetailFromApi(team: FootballTeam, existingDetail?: FootballS
     },
     message:
       recent.length > 0 || nextFixture.id !== `${team.id}-next`
-        ? `已刷新 ${team.name} 的 ${FREE_PLAN_LATEST_SEASON} 赛季数据`
-        : `已同步 ${team.name} 的静态资料，但免费 API 当前没有返回可用的 ${FREE_PLAN_LATEST_SEASON} 赛季比赛信息`
+        ? `已刷新 ${team.name} 的 ${season} 赛季数据`
+        : `已同步 ${team.name} 的静态资料，但当前 API 没有返回可用的 ${season} 赛季比赛信息`
   };
 }
 
