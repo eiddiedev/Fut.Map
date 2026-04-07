@@ -2,6 +2,8 @@
 
 [English README](./README.md)
 
+线上地址：[https://fm.eiddie.top](https://fm.eiddie.top)
+
 Fut.Map 是一个基于 Next.js 构建的足球地图演示项目。它从一个强调氛围感的落地页开始，进入 3D 地球视图展示国家队，再切换到 2D 世界地图展示联赛与俱乐部的地理分布。
 
 当前仓库主要面向 demo 展示，核心能力包括：

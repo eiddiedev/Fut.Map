@@ -2,6 +2,8 @@
 
 [中文说明](./README.zh-CN.md)
 
+Live site: [https://fm.eiddie.top](https://fm.eiddie.top)
+
 Fut.Map is a cinematic football atlas built with Next.js. It starts with a motion-led landing scene, drops into a 3D globe for national-team storytelling, and expands into a 2D world map for league and club exploration.
 
 This repo is currently set up as a demo-focused build:
