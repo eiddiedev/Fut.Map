@@ -86,6 +86,7 @@ const COUNTRY_NAME_CODE_ALIASES: Record<string, string> = {
   mongolia: "mn",
   montenegro: "me",
   myanmar: "mm",
+  "n cyprus": "cy",
   namibia: "na",
   nepal: "np",
   "new zealand": "nz",
