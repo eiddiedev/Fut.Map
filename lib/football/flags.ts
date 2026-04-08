@@ -23,6 +23,217 @@ export const NATIONAL_COUNTRY_CODE_OVERRIDES: Record<string, string> = {
   China: "cn"
 };
 
+const COUNTRY_NAME_CODE_ALIASES: Record<string, string> = {
+  aland: "ax",
+  "american samoa": "as",
+  "antigua and barb": "ag",
+  "antigua and barb.": "ag",
+  bahamas: "bs",
+  "bosnia and herz": "ba",
+  "bosnia and herz.": "ba",
+  "br indian ocean ter": "io",
+  brunei: "bn",
+  "burkina faso": "bf",
+  "cape verde": "cv",
+  "cayman is": "ky",
+  "cayman is.": "ky",
+  "central african rep": "cf",
+  "central african rep.": "cf",
+  "costa rica": "cr",
+  curacao: "cw",
+  "czech rep": "cz",
+  "czech rep.": "cz",
+  "dem rep congo": "cd",
+  "dem rep congo.": "cd",
+  "dem rep korea": "kp",
+  "dem rep korea.": "kp",
+  "dominican rep": "do",
+  "dominican rep.": "do",
+  "el salvador": "sv",
+  "eq guinea": "gq",
+  "eq guinea.": "gq",
+  "faeroe is": "fo",
+  "faeroe is.": "fo",
+  "falkland is": "fk",
+  "falkland is.": "fk",
+  "fr polynesia": "pf",
+  fiji: "fj",
+  gambia: "gm",
+  guinea: "gn",
+  guyana: "gy",
+  haiti: "ht",
+  honduras: "hn",
+  "hong kong": "hk",
+  iraq: "iq",
+  jamaica: "jm",
+  jordan: "jo",
+  kazakhstan: "kz",
+  kenya: "ke",
+  korea: "kr",
+  kyrgyzstan: "kg",
+  "lao pdr": "la",
+  lebanon: "lb",
+  lesotho: "ls",
+  liberia: "lr",
+  libya: "ly",
+  liechtenstein: "li",
+  luxembourg: "lu",
+  macedonia: "mk",
+  maldives: "mv",
+  mauritania: "mr",
+  mauritius: "mu",
+  moldova: "md",
+  mongolia: "mn",
+  montenegro: "me",
+  myanmar: "mm",
+  namibia: "na",
+  nepal: "np",
+  "new zealand": "nz",
+  nicaragua: "ni",
+  nigeria: "ng",
+  oman: "om",
+  pakistan: "pk",
+  palestine: "ps",
+  panama: "pa",
+  paraguay: "py",
+  peru: "pe",
+  philippines: "ph",
+  qatar: "qa",
+  romania: "ro",
+  russia: "ru",
+  rwanda: "rw",
+  "s geo and s sandw is": "gs",
+  "s geo and s sandw is.": "gs",
+  "s sudan": "ss",
+  senegal: "sn",
+  singapore: "sg",
+  slovakia: "sk",
+  slovenia: "si",
+  somalia: "so",
+  "south africa": "za",
+  sudan: "sd",
+  suriname: "sr",
+  swaziland: "sz",
+  syria: "sy",
+  tajikistan: "tj",
+  tanzania: "tz",
+  "timor leste": "tl",
+  "timor-leste": "tl",
+  tobago: "tt",
+  "trinidad and tobago": "tt",
+  "turks and caicos is": "tc",
+  "turks and caicos is.": "tc",
+  uganda: "ug",
+  ukraine: "ua",
+  "united arab emirates": "ae",
+  uzbekistan: "uz",
+  venezuela: "ve",
+  vietnam: "vn",
+  "u s virgin is": "vi",
+  "u s virgin is.": "vi",
+  "w sahara": "eh",
+  yemen: "ye",
+  zambia: "zm",
+  zimbabwe: "zw",
+  albania: "al",
+  algeria: "dz",
+  andorra: "ad",
+  angola: "ao",
+  armenia: "am",
+  austria: "at",
+  azerbaijan: "az",
+  bahrain: "bh",
+  bangladesh: "bd",
+  barbados: "bb",
+  belarus: "by",
+  belgium: "be",
+  belize: "bz",
+  benin: "bj",
+  bermuda: "bm",
+  bhutan: "bt",
+  bolivia: "bo",
+  botswana: "bw",
+  bulgaria: "bg",
+  burundi: "bi",
+  cambodia: "kh",
+  cameroon: "cm",
+  canada: "ca",
+  chile: "cl",
+  congo: "cg",
+  cuba: "cu",
+  cyprus: "cy",
+  denmark: "dk",
+  ecuador: "ec",
+  egypt: "eg",
+  estonia: "ee",
+  ethiopia: "et",
+  finland: "fi",
+  gabon: "ga",
+  georgia: "ge",
+  ghana: "gh",
+  greece: "gr",
+  grenada: "gd",
+  guatemala: "gt",
+  hungary: "hu",
+  iceland: "is",
+  india: "in",
+  indonesia: "id",
+  iran: "ir",
+  ireland: "ie",
+  israel: "il",
+  kuwait: "kw",
+  latvia: "lv",
+  lithuania: "lt",
+  malawi: "mw",
+  malaysia: "my",
+  mali: "ml",
+  malta: "mt",
+  morocco: "ma",
+  norway: "no",
+  poland: "pl",
+  serbia: "rs",
+  sweden: "se",
+  switzerland: "ch",
+  thailand: "th",
+  turkey: "tr"
+};
+
+function normalizeCountryLookup(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function buildRegionNameCodeMap() {
+  if (typeof Intl === "undefined" || typeof Intl.DisplayNames === "undefined") {
+    return new Map<string, string>();
+  }
+
+  const displayNames = new Intl.DisplayNames(["en"], { type: "region" });
+  const map = new Map<string, string>();
+
+  for (let code = 65; code <= 90; code += 1) {
+    for (let inner = 65; inner <= 90; inner += 1) {
+      const regionCode = `${String.fromCharCode(code)}${String.fromCharCode(inner)}`;
+      const label = displayNames.of(regionCode);
+
+      if (!label || label === regionCode) {
+        continue;
+      }
+
+      map.set(normalizeCountryLookup(label), regionCode.toLowerCase());
+    }
+  }
+
+  return map;
+}
+
+const REGION_NAME_CODE_MAP = buildRegionNameCodeMap();
+
 const COUNTRY_FLAG_URL_FALLBACKS: Record<string, string> = {
   Afghanistan: "https://flagcdn.com/w80/af.png",
   Aland: "https://flagcdn.com/w80/ax.png",
@@ -133,5 +344,18 @@ export function getFlagUrlForCountryCode(countryCode: string | null | undefined,
 }
 
 export function getNationalFlagUrl(country: string) {
-  return COUNTRY_FLAG_URL_FALLBACKS[country] ?? getFlagUrlForCountryCode(NATIONAL_COUNTRY_CODE_OVERRIDES[country]);
+  if (COUNTRY_FLAG_URL_FALLBACKS[country]) {
+    return COUNTRY_FLAG_URL_FALLBACKS[country];
+  }
+
+  const overrideCode = NATIONAL_COUNTRY_CODE_OVERRIDES[country];
+
+  if (overrideCode) {
+    return getFlagUrlForCountryCode(overrideCode);
+  }
+
+  const normalizedCountry = normalizeCountryLookup(country);
+  const resolvedCode = COUNTRY_NAME_CODE_ALIASES[normalizedCountry] ?? REGION_NAME_CODE_MAP.get(normalizedCountry);
+
+  return getFlagUrlForCountryCode(resolvedCode);
 }
