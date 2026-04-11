@@ -7,6 +7,14 @@ import type { Match } from "@/data/mockData";
 import { IntroLanding, type IntroPhase } from "@/components/IntroLanding";
 import { createFallbackFootballSnapshot } from "@/lib/football/fallback";
 import type { FootballSnapshot, RefreshResult } from "@/lib/football/types";
+import {
+  DEFAULT_LOCALE,
+  HOME_COPY,
+  LOCALE_STORAGE_KEY,
+  normalizeLocale,
+  translateRefreshMessage,
+  type Locale
+} from "@/lib/i18n/ui";
 
 type ViewMode = "globe" | "flat";
 
@@ -29,6 +37,7 @@ export default function HomePage() {
   const autoRefreshAtRef = useRef(new Map<string, number>());
   const inFlightRefreshRef = useRef(new Set<string>());
   const prefersReducedMotion = useReducedMotion();
+  const [locale, setLocale] = useState<Locale>(DEFAULT_LOCALE);
   const [snapshot, setSnapshot] = useState<FootballSnapshot>(() => createFallbackFootballSnapshot());
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("globe");
@@ -39,8 +48,17 @@ export default function HomePage() {
   const [refreshMessages, setRefreshMessages] = useState<Record<string, string | null>>({});
   const [refreshingTeamIds, setRefreshingTeamIds] = useState<string[]>([]);
   const [shouldMountExperience, setShouldMountExperience] = useState(false);
+  const copy = HOME_COPY[locale];
   const isCountryMode = viewMode === "flat";
   const isIntroVisible = introPhase !== "revealed";
+  const languageDockClass = isIntroVisible
+    ? "bottom-8 right-4 sm:bottom-10 sm:right-6"
+    : isCountryMode
+      ? "bottom-12 right-4 sm:bottom-14 sm:right-6"
+      : "bottom-32 right-4 sm:bottom-32 sm:right-6";
+  const languageDockStyle = selectedTeamId
+    ? { right: "calc(min(24rem, calc(100vw - 2rem)) + 1rem)" }
+    : undefined;
   const clubMap = useMemo(
     () => Object.fromEntries(snapshot.clubs.map((team) => [team.id, team])),
     [snapshot.clubs]
@@ -237,6 +255,15 @@ export default function HomePage() {
   };
 
   useEffect(() => {
+    const storedLocale = normalizeLocale(window.localStorage.getItem(LOCALE_STORAGE_KEY));
+    setLocale(storedLocale);
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+  }, [locale]);
+
+  useEffect(() => {
     const main = mainRef.current;
 
     if (!main) {
@@ -372,6 +399,7 @@ export default function HomePage() {
         {shouldMountExperience ? (
           isCountryMode ? (
             <WorldDetailMap
+              locale={locale}
               selectedTeamId={selectedTeamId}
               onSelectTeam={handleSelectTeam}
               teams={snapshot.clubs}
@@ -379,6 +407,7 @@ export default function HomePage() {
             />
           ) : (
             <MapComponent
+              locale={locale}
               selectedTeamId={selectedTeamId}
               onSelectTeam={handleSelectTeam}
               visibleTeamIds={globeHotTeamIds}
@@ -397,13 +426,45 @@ export default function HomePage() {
 
       <div className="pointer-events-none absolute inset-0 bg-grid-radial opacity-80" />
 
+      <div
+        className={`absolute z-50 flex items-center gap-2 ${languageDockClass}`}
+        style={languageDockStyle}
+      >
+        <div className="rounded-full border border-cyan-200/12 bg-black/42 p-1 backdrop-blur-xl">
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setLocale("zh")}
+              className={`rounded-full px-3 py-2 text-[10px] tracking-[0.22em] transition ${
+                locale === "zh"
+                  ? "bg-cyan-200/14 text-cyan-50"
+                  : "text-white/56 hover:text-white/82"
+              }`}
+              aria-label={`${copy.languageLabel} Chinese`}
+            >
+              中文
+            </button>
+            <button
+              type="button"
+              onClick={() => setLocale("en")}
+              className={`rounded-full px-3 py-2 text-[10px] tracking-[0.22em] transition ${
+                locale === "en"
+                  ? "bg-cyan-200/14 text-cyan-50"
+                  : "text-white/56 hover:text-white/82"
+              }`}
+              aria-label={`${copy.languageLabel} English`}
+            >
+              EN
+            </button>
+          </div>
+        </div>
+      </div>
+
       {!isIntroVisible ? (
         <div className="pointer-events-none absolute left-4 top-4 z-30 max-w-[18rem] rounded-2xl border border-cyan-200/10 bg-black/34 px-4 py-3 backdrop-blur-xl sm:left-6 sm:top-6">
-          <div className="text-[10px] tracking-[0.24em] text-cyan-50/52">模式说明</div>
+          <div className="text-[10px] tracking-[0.24em] text-cyan-50/52">{copy.modeTitle}</div>
           <div className="mt-2 text-sm leading-6 text-white/84">
-            {isCountryMode
-              ? "二维模式查看全球俱乐部分布与城市层级。"
-              : "三维模式查看全球国家队视角与国家级联动飞线。"}
+            {isCountryMode ? copy.flatDescription : copy.globeDescription}
           </div>
         </div>
       ) : null}
@@ -415,13 +476,14 @@ export default function HomePage() {
             onClick={() => (isCountryMode ? handleExitFlatView() : handleEnterFlatView())}
             className="rounded-2xl border border-cyan-200/15 bg-black/42 px-4 py-3 text-left text-[11px] tracking-[0.22em] text-cyan-50 backdrop-blur-xl transition duration-300 hover:border-cyan-200/35 hover:bg-cyan-200/10"
           >
-            {isCountryMode ? "切回三维地球" : "切换二维世界地图"}
+            {isCountryMode ? copy.showGlobe : copy.showFlatMap}
           </button>
         </div>
       ) : null}
 
       {!isIntroVisible ? (
         <TeamSidebar
+          locale={locale}
           selectedTeamId={selectedTeamId}
           onClose={() => setSelectedTeamId(null)}
           clubMap={clubMap}
@@ -431,8 +493,8 @@ export default function HomePage() {
           refreshMessage={
             selectedTeamId
               ? refreshingTeamIds.includes(selectedTeamId)
-                ? "正在同步该队伍的最新信息..."
-                : refreshMessages[selectedTeamId] ?? null
+                ? copy.refreshing
+                : translateRefreshMessage(locale, refreshMessages[selectedTeamId] ?? null)
               : null
           }
         />
@@ -441,12 +503,13 @@ export default function HomePage() {
       {!isIntroVisible && isCountryMode ? (
         <div className="pointer-events-none absolute inset-x-0 bottom-4 z-[45] flex justify-center px-4 sm:bottom-5">
           <div className="rounded-full border border-white/8 bg-black/28 px-4 py-2 text-center text-[10px] tracking-[0.08em] text-white/46 backdrop-blur-md">
-            由于免费API限制，此站demo版本暂展示2024年的联赛数据
+            {copy.dataNotice}
           </div>
         </div>
       ) : null}
 
       <IntroLanding
+        locale={locale}
         phase={introPhase}
         reducedMotion={Boolean(prefersReducedMotion)}
         target={introTarget}

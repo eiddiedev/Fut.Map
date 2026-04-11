@@ -6,10 +6,12 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { IntroPhase } from "@/components/IntroLanding";
 import type { Match } from "@/data/mockData";
 import { getFootballWorldCapitals } from "@/lib/football/national-geography";
+import { type Locale, MAP_CONTROL_COPY } from "@/lib/i18n/ui";
 import type { FootballTeam, GlobeHotNationalTeamConfig } from "@/lib/football/types";
 import { getNationalFlagIcon } from "@/lib/teamBrand";
 
 type MapComponentProps = {
+  locale: Locale;
   selectedTeamId: string | null;
   onSelectTeam: (teamId: string) => void;
   visibleTeamIds?: string[];
@@ -1106,6 +1108,7 @@ function disposeScene(root: THREE.Object3D) {
 }
 
 export function MapComponent({
+  locale,
   selectedTeamId,
   onSelectTeam,
   visibleTeamIds,
@@ -1133,6 +1136,7 @@ export function MapComponent({
   const [isAutoSpinEnabled, setIsAutoSpinEnabled] = useState(true);
   const [isArcVisible, setIsArcVisible] = useState(false);
   const [renderError, setRenderError] = useState<string | null>(null);
+  const copy = MAP_CONTROL_COPY[locale];
   const visibleTeamIdSet = useMemo(
     () => new Set(visibleTeamIds ?? globeHotNationalTeams.map((team) => team.id)),
     [globeHotNationalTeams, visibleTeamIds]
@@ -1866,38 +1870,43 @@ export function MapComponent({
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(225,255,248,0.16),transparent_30%),radial-gradient(circle_at_80%_10%,rgba(112,255,225,0.08),transparent_22%),linear-gradient(180deg,rgba(1,3,8,0.08),rgba(1,3,8,0.46))]" />
 
       {presentationPhase === "revealed" ? (
-        <div className="absolute bottom-5 right-4 z-30 flex gap-2 sm:bottom-6 sm:right-6">
-          <button
-            type="button"
-            onClick={() => setIsArcVisible((current) => !current)}
-            className="rounded-full border border-white/8 bg-black/28 px-3 py-2 text-[10px] tracking-[0.22em] text-white/46 backdrop-blur-md transition duration-300 hover:border-white/16 hover:bg-black/34 hover:text-white/78"
-          >
-            {isArcVisible ? "飞线已开" : "飞线已关"}
-          </button>
+        <div className="absolute bottom-5 right-4 z-30 flex flex-col items-end gap-2 sm:bottom-6 sm:right-6">
+          <div className="rounded-full border border-white/8 bg-black/28 px-3 py-2 text-[10px] tracking-[0.16em] text-white/58 backdrop-blur-md">
+            {copy.flylineDisclaimer}
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setIsArcVisible((current) => !current)}
+              className="rounded-full border border-white/8 bg-black/28 px-3 py-2 text-[10px] tracking-[0.22em] text-white/46 backdrop-blur-md transition duration-300 hover:border-white/16 hover:bg-black/34 hover:text-white/78"
+            >
+              {isArcVisible ? copy.flylinesOn : copy.flylinesOff}
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setIsAutoSpinEnabled((current) => !current)}
-            className="rounded-full border border-white/8 bg-black/28 px-3 py-2 text-[10px] tracking-[0.22em] text-white/46 backdrop-blur-md transition duration-300 hover:border-white/16 hover:bg-black/34 hover:text-white/78"
-          >
-            {isAutoSpinEnabled ? "自动旋转已开" : "自动旋转已关"}
-          </button>
+            <button
+              type="button"
+              onClick={() => setIsAutoSpinEnabled((current) => !current)}
+              className="rounded-full border border-white/8 bg-black/28 px-3 py-2 text-[10px] tracking-[0.22em] text-white/46 backdrop-blur-md transition duration-300 hover:border-white/16 hover:bg-black/34 hover:text-white/78"
+            >
+              {isAutoSpinEnabled ? copy.autoRotateOn : copy.autoRotateOff}
+            </button>
 
-          <button
-            type="button"
-            onClick={handleResetView}
-            className="rounded-full border border-white/8 bg-black/28 px-3 py-2 text-[10px] tracking-[0.22em] text-white/46 backdrop-blur-md transition duration-300 hover:border-white/16 hover:bg-black/34 hover:text-white/78"
-          >
-            重置视角
-          </button>
+            <button
+              type="button"
+              onClick={handleResetView}
+              className="rounded-full border border-white/8 bg-black/28 px-3 py-2 text-[10px] tracking-[0.22em] text-white/46 backdrop-blur-md transition duration-300 hover:border-white/16 hover:bg-black/34 hover:text-white/78"
+            >
+              {copy.resetView}
+            </button>
+          </div>
         </div>
       ) : null}
 
       {renderError ? (
         <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 w-[min(92vw,30rem)] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-amber-300/25 bg-black/70 px-6 py-5 text-sm leading-7 text-amber-100 backdrop-blur-2xl">
-          当前环境没有拿到 WebGL 渲染上下文，3D 地球无法启动。请在支持硬件加速的浏览器里打开页面。
+          {copy.renderError}
           <div className="mt-2 text-xs tracking-[0.2em] text-amber-200/70">
-            渲染器 / {renderError}
+            {copy.rendererLabel} / {renderError}
           </div>
         </div>
       ) : null}

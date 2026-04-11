@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { type Locale, INTRO_COPY } from "@/lib/i18n/ui";
 
 export type IntroPhase = "idle" | "launching" | "revealed";
 
 type IntroLandingProps = {
+  locale: Locale;
   phase: IntroPhase;
   reducedMotion: boolean;
   target: { x: number; y: number; size: number } | null;
@@ -23,10 +25,11 @@ type LaunchMetrics = {
 
 const LAUNCH_TARGET_X_OFFSET = 0;
 
-export function IntroLanding({ phase, reducedMotion, target, onStart }: IntroLandingProps) {
+export function IntroLanding({ locale, phase, reducedMotion, target, onStart }: IntroLandingProps) {
   const dotRef = useRef<HTMLSpanElement | null>(null);
   const [launchMetrics, setLaunchMetrics] = useState<LaunchMetrics | null>(null);
   const isLaunching = phase === "launching";
+  const copy = INTRO_COPY[locale];
 
   const animatedDotStyle = useMemo(() => {
     if (!launchMetrics) {
@@ -138,7 +141,7 @@ export function IntroLanding({ phase, reducedMotion, target, onStart }: IntroLan
               transition={{ duration: 0.72, ease: [0.16, 1, 0.3, 1] }}
               className="mb-6 rounded-full border border-emerald-300/12 bg-black/24 px-4 py-2 text-[10px] tracking-[0.42em] text-emerald-100/72 backdrop-blur-xl"
             >
-              GLOBAL FOOTBALL SIGNAL ATLAS
+              {copy.badge}
             </motion.div>
 
             <motion.h1
@@ -173,7 +176,7 @@ export function IntroLanding({ phase, reducedMotion, target, onStart }: IntroLan
               whileTap={{ scale: 0.985 }}
               className="mt-10 rounded-full border border-emerald-300/18 bg-black/36 px-7 py-3 text-[11px] tracking-[0.34em] text-white backdrop-blur-xl transition-colors duration-300 hover:bg-emerald-300/10"
             >
-              开始探索
+              {copy.cta}
             </motion.button>
           </motion.div>
 

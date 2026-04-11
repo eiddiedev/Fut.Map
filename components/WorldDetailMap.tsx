@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import type { FootballTeam } from "@/lib/football/types";
 import { FALLBACK_LEAGUE_CATALOG, PRIORITY_BOOTSTRAP_CATALOG } from "@/lib/football/config";
+import { type Locale, WORLD_MAP_COPY } from "@/lib/i18n/ui";
 import { getClubBadgeIcon } from "@/lib/teamBrand";
 import worldCapitals from "@/data/world-capitals.json";
 
 type WorldDetailMapProps = {
+  locale: Locale;
   selectedTeamId: string | null;
   onSelectTeam: (teamId: string) => void;
   teams: FootballTeam[];
@@ -963,6 +965,7 @@ function buildTiandituRasterTileUrl(key: string) {
 }
 
 export function WorldDetailMap({
+  locale,
   selectedTeamId,
   onSelectTeam,
   teams,
@@ -975,6 +978,7 @@ export function WorldDetailMap({
   const [countryLabels, setCountryLabels] = useState<ProjectedCountryLabel[]>([]);
   const [cityLabels, setCityLabels] = useState<ProjectedCityLabel[]>([]);
   const [mapError, setMapError] = useState<string | null>(null);
+  const copy = WORLD_MAP_COPY[locale];
   const [isMapInteracting, setIsMapInteracting] = useState(false);
   const [viewSpan, setViewSpan] = useState({ lng: 360, lat: 170 });
   const tiandituKey = process.env.NEXT_PUBLIC_TIANDITU_KEY;
@@ -1071,7 +1075,7 @@ export function WorldDetailMap({
         projection: "mercator"
       });
     } catch (error) {
-      setMapError(error instanceof Error ? error.message : "世界地图初始化失败");
+      setMapError(error instanceof Error ? error.message : copy.initError);
       return;
     }
 
@@ -1316,7 +1320,7 @@ export function WorldDetailMap({
         scheduleSyncOverlayPoints();
         setMapError(null);
       } catch (error) {
-        setMapError(error instanceof Error ? error.message : "世界地图标签加载失败");
+        setMapError(error instanceof Error ? error.message : copy.labelError);
       }
     });
 
@@ -1340,7 +1344,7 @@ export function WorldDetailMap({
       map.remove();
       mapRef.current = null;
     };
-  }, [tiandituKey]);
+  }, [copy.initError, copy.labelError, tiandituKey]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -1559,8 +1563,10 @@ export function WorldDetailMap({
 
       {mapError ? (
         <div className="pointer-events-none absolute left-1/2 top-1/2 z-30 w-[min(92vw,30rem)] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-amber-300/25 bg-black/70 px-6 py-5 text-sm leading-7 text-amber-100 backdrop-blur-2xl">
-          世界地图加载失败，请检查网络或渲染环境。
-          <div className="mt-2 text-xs tracking-[0.2em] text-amber-200/70">渲染器 / {mapError}</div>
+          {copy.loadError}
+          <div className="mt-2 text-xs tracking-[0.2em] text-amber-200/70">
+            {copy.rendererLabel} / {mapError}
+          </div>
         </div>
       ) : null}
     </div>
