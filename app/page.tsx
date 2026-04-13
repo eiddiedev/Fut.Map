@@ -56,9 +56,6 @@ export default function HomePage() {
     : isCountryMode
       ? "bottom-12 right-4 sm:bottom-14 sm:right-6"
       : "bottom-32 right-4 sm:bottom-32 sm:right-6";
-  const languageDockStyle = selectedTeamId
-    ? { right: "calc(min(24rem, calc(100vw - 2rem)) + 1rem)" }
-    : undefined;
   const clubMap = useMemo(
     () => Object.fromEntries(snapshot.clubs.map((team) => [team.id, team])),
     [snapshot.clubs]
@@ -426,10 +423,7 @@ export default function HomePage() {
 
       <div className="pointer-events-none absolute inset-0 bg-grid-radial opacity-80" />
 
-      <div
-        className={`absolute z-50 flex items-center gap-2 ${languageDockClass}`}
-        style={languageDockStyle}
-      >
+      <div className={`absolute z-50 flex items-center gap-2 ${languageDockClass}`}>
         <div className="rounded-full border border-cyan-200/12 bg-black/42 p-1 backdrop-blur-xl">
           <div className="flex items-center gap-1">
             <button
