@@ -1619,9 +1619,23 @@ export function MapComponent({
       arcGroup.visible = (isPresentationReady || revealProgress > 0.01) && arcVisibilityRef.current;
 
       if (cameraGoal) {
-        camera.position.lerp(cameraGoal, 0.055);
+        const currentOffset = camera.position.clone().sub(GLOBE_CENTER);
+        const goalOffset = cameraGoal.clone().sub(GLOBE_CENTER);
+        const currentDistance = currentOffset.length();
+        const goalDistance = goalOffset.length();
+        const nextDistance = THREE.MathUtils.lerp(currentDistance, goalDistance, 0.085);
+        const nextDirection = currentOffset
+          .normalize()
+          .lerp(goalOffset.normalize(), 0.09)
+          .normalize();
+        const nextPosition = nextDirection.multiplyScalar(nextDistance).add(GLOBE_CENTER.clone());
 
-        if (camera.position.distanceTo(cameraGoal) < 0.03) {
+        camera.position.copy(nextPosition);
+
+        if (
+          camera.position.distanceTo(cameraGoal) < 0.03 ||
+          nextDirection.angleTo(goalOffset.normalize()) < 0.002
+        ) {
           camera.position.copy(cameraGoal);
           pendingCameraGoalRef.current = null;
         }

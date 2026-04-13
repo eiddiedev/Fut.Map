@@ -423,7 +423,7 @@ export default function HomePage() {
 
       <div className="pointer-events-none absolute inset-0 bg-grid-radial opacity-80" />
 
-      <div className={`absolute z-50 flex items-center gap-2 ${languageDockClass}`}>
+      <div className={`absolute z-20 flex items-center gap-2 ${languageDockClass}`}>
         <div className="rounded-full border border-cyan-200/12 bg-black/42 p-1 backdrop-blur-xl">
           <div className="flex items-center gap-1">
             <button
