@@ -1121,7 +1121,15 @@ export function MapComponent({
 }: MapComponentProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const threeRef = useRef<ThreeState | null>(null);
+  const visibleTeamIdSet = useMemo(
+    () => new Set(visibleTeamIds ?? globeHotNationalTeams.map((team) => team.id)),
+    [globeHotNationalTeams, visibleTeamIds]
+  );
+  const nationalTeamsRef = useRef(nationalTeams);
+  const nationalMatchesRef = useRef(nationalMatches);
+  const visibleTeamIdSetRef = useRef(visibleTeamIdSet);
   const onSelectTeamRef = useRef(onSelectTeam);
+  const nationalTeamMapRef = useRef(nationalTeamMap);
   const selectedTeamIdRef = useRef<string | null>(selectedTeamId);
   const hoveredTeamIdRef = useRef<string | null>(null);
   const focusCameraRef = useRef<FocusCameraFn>(() => undefined);
@@ -1137,12 +1145,12 @@ export function MapComponent({
   const [isArcVisible, setIsArcVisible] = useState(false);
   const [renderError, setRenderError] = useState<string | null>(null);
   const copy = MAP_CONTROL_COPY[locale];
-  const visibleTeamIdSet = useMemo(
-    () => new Set(visibleTeamIds ?? globeHotNationalTeams.map((team) => team.id)),
-    [globeHotNationalTeams, visibleTeamIds]
-  );
 
   onSelectTeamRef.current = onSelectTeam;
+  nationalTeamsRef.current = nationalTeams;
+  nationalMatchesRef.current = nationalMatches;
+  visibleTeamIdSetRef.current = visibleTeamIdSet;
+  nationalTeamMapRef.current = nationalTeamMap;
   selectedTeamIdRef.current = selectedTeamId;
   presentationPhaseRef.current = presentationPhase;
   presentationTargetRef.current = onPresentationTargetChange;
@@ -1366,9 +1374,9 @@ export function MapComponent({
       }
     })();
 
-    nationalTeams.forEach((team, index) => {
+    nationalTeamsRef.current.forEach((team, index) => {
       const visibleAtOrBelowDistance =
-        visibleTeamIdSet.has(team.id) || Boolean(team.showInGlobeOverview)
+        visibleTeamIdSetRef.current.has(team.id) || Boolean(team.showInGlobeOverview)
           ? team.visibleAtOrBelowDistance ?? 8.1
           : Math.min(team.visibleAtOrBelowDistance ?? 8.1, 5.02);
       const marker = createMarker(
@@ -1376,7 +1384,7 @@ export function MapComponent({
         team.lat,
         team.lng,
         index * 0.65,
-        visibleTeamIdSet.has(team.id) || Boolean(team.showInGlobeOverview),
+        visibleTeamIdSetRef.current.has(team.id) || Boolean(team.showInGlobeOverview),
         visibleAtOrBelowDistance
       );
       marker.group.userData.teamId = team.id;
@@ -1386,11 +1394,13 @@ export function MapComponent({
       markersByTeamId.set(team.id, marker);
     });
 
-    nationalMatches.filter(
-      (match) => visibleTeamIdSet.has(match.homeTeamId) && visibleTeamIdSet.has(match.awayTeamId)
+    nationalMatchesRef.current.filter(
+      (match) =>
+        visibleTeamIdSetRef.current.has(match.homeTeamId) &&
+        visibleTeamIdSetRef.current.has(match.awayTeamId)
     ).forEach((match, index) => {
-      const sourceTeam = nationalTeamMap[match.homeTeamId];
-      const targetTeam = nationalTeamMap[match.awayTeamId];
+      const sourceTeam = nationalTeamMapRef.current[match.homeTeamId];
+      const targetTeam = nationalTeamMapRef.current[match.awayTeamId];
 
       if (!sourceTeam || !targetTeam) {
         return;
@@ -1843,7 +1853,7 @@ export function MapComponent({
       renderer.domElement.remove();
       threeRef.current = null;
     };
-  }, [globeHotNationalTeams, nationalMatches, nationalTeamMap, nationalTeams, visibleTeamIdSet]);
+  }, []);
 
   useEffect(() => {
     if (!threeRef.current) {
@@ -1859,7 +1869,7 @@ export function MapComponent({
       return;
     }
 
-    const team = nationalTeamMap[selectedTeamId];
+    const team = nationalTeamMapRef.current[selectedTeamId];
 
     if (!team) {
       return;
